@@ -1,0 +1,11 @@
+export enum STATUS {
+  ACTIVATED = 'ACTIVATED',
+  PENDING = 'PENDING',
+}
+
+export enum ROLE {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  ADMIN = 'ADMIN',
+  USER = 'USER',
+  OPERATOR = 'OPERATOR',
+}

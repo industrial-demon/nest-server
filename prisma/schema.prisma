@@ -1,0 +1,192 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  USER
+  OPERATOR
+}
+
+model User {
+  id          String    @id @default(uuid())
+  email       String    @unique
+  password    String    @unique
+  name        String
+  lastName    String    @map("last_name")
+  status      String?   @default("ACTIVATED")
+  createdAt   DateTime? @default(now())
+  role        Role?     @default(USER)
+  refreshHash String?
+  posts       Post[]
+  jobs        Job[]
+
+  @@index([id])
+  @@map("users")
+}
+
+model Post {
+  id          Int        @id @default(autoincrement())
+  createdAt   DateTime?  @default(now())
+  title       String
+  published   Boolean?   @default(false)
+  authorId    String
+  categoryIDs String[]
+  author      User       @relation(fields: [authorId], references: [id])
+  categories  Category[] @relation()
+
+  @@map("posts")
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String
+  posts Post[] @relation()
+
+  @@map("category")
+}
+
+model Job {
+  batchid         String    @id @default(uuid())
+  mappingTaskName String
+  jobTaskName     String?
+  user            User?     @relation(fields: [userId], references: [id])
+  userId          String?
+  username        String
+  startedTstamp   DateTime
+  updatedTstamp   DateTime
+  completedTstamp DateTime?
+  etlexecStatus   String
+  deleteFlag      Boolean   @default(false)
+  schedule        Schedule?
+
+  @@map("jobs")
+}
+
+model Schedule {
+  scheduleId          Int       @id @default(autoincrement())
+  scheduleName        String
+  description         String?
+  startDate           DateTime?
+  timezone            String?
+  interval            String?
+  frequency           Int?
+  repeat              Boolean?  @default(false)
+  hourlyFrequencyKill Boolean?  @default(false)
+  job                 Job       @relation(fields: [jobBatchId], references: [batchid])
+  jobBatchId          String    @unique
+
+  @@map("schedules")
+}
+
+model Task {
+  id            Int    @id @default(autoincrement())
+  mappingTaskId String @default(uuid())
+  mappingName   String
+
+  srcConnectionName    String
+  targetConnectionName String
+
+  createdBy           DateTime @default(now())
+  srcConnectorType    String
+  srcConnectionObject String
+
+  targetConnectorType    String?
+  targetConnectionObject String?
+  updatedTimestamp       DateTime
+
+  source      String
+  target      String
+  createStage String
+  schedule    DateTime
+  updated     DateTime
+}
+
+//-------Connection section-----------------------------------------------------
+model ConnParams {
+  id                        String      @id @default(uuid())
+  agentId                   String      @unique()
+  agentGroupId              String
+  orgId                     String
+  authentication_TYPE       String?
+  useEC2RoletoAssumeRole    String?
+  federatedUsername         String?
+  samlidentityProviderARN   String?
+  credentialProfileFilePath String?
+  otherAuthenticationType   String?
+  accessKey                 String?
+  folderPath                String?
+  profileName               String?
+  iamroleARN                String?
+  idpSsoUrl                 String?
+  secretKey                 String?
+  federatedSSOIdP           String?
+  regionName                String?
+  roleARN                   String?
+  s3RegionName              String?
+  connection                Connection? @relation(fields: [agentId], references: [agentId])
+}
+
+model Connection {
+  id                   String     @id @default(uuid())
+  orgId                String?
+  name                 String
+  type                 String
+  description          String?
+  agentId              String?     @unique()
+  runtimeEnvironmentId String?
+  instanceDisplayName  String?
+  host                 String?
+  database             String?
+  codepage             String?
+  adjustedJdbcHostName String?
+  shortDescription     String?
+  port                 String?
+  username             String?
+  password             String?
+  createTime           DateTime?
+  updateTime           DateTime?
+  createdBy            String?
+  updatedBy            String?
+  connParams           ConnParams?
+}
+
+//-------Next learn  start ----------------------------------------------------------
+
+model Customer {
+  id        String @id @default(uuid())
+  name      String
+  email     String
+  image_url String
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+}
+
+model Invoice {
+  id          String        @id @default(uuid())
+  customer_id String
+  amount      Int
+  date        DateTime      @db.Date
+  status      InvoiceStatus
+}
+
+
+model Product {
+  id        String   @id @default(uuid())
+  name      String
+  price     Int
+  quantity  Int
+  image_url String?
+}
