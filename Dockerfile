@@ -1,51 +1,28 @@
-# syntax = docker/dockerfile:1
 
-# Adjust NODE_VERSION as desired
-ARG NODE_VERSION=18.17.1
-FROM node:${NODE_VERSION}-slim as base
+FROM node:20 as build
 
-LABEL fly_launch_runtime="NestJS/Prisma"
-
-# NestJS/Prisma app lives here
 WORKDIR /app
 
-# Set production environment
-ENV NODE_ENV="production"
+COPY --chown=node:node package.json package-lock.json ./
+COPY --chown=node:node prisma ./
+COPY --chown=node:node views ./
+COPY --chown=node:node public ./
 
-
-# Throw-away build stage to reduce size of final image
-FROM base as build
-
-# Install packages needed to build node modules
-RUN apt-get update -qq && \
-    apt-get install -y build-essential openssl pkg-config python-is-python3
-
-# Install node modules
-COPY --link package-lock.json package.json ./
-RUN npm ci --include=dev
-
-# Generate Prisma Client
-COPY --link prisma .
+RUN npm ci
+COPY --chown=node:node . .
 RUN npx prisma generate
-
-# Copy application code
-COPY --link . .
-
-# Build application
 RUN npm run build
 
-
-# Final stage for app image
-FROM base
-
-# Install packages needed for deployment
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y openssl && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
-
-# Copy built application
-COPY --from=build /app /app
-
-# Start the server by default, this can be overwritten at runtime
+FROM node:20
+RUN apt-get update && apt-get install curl -y
+WORKDIR /app
+COPY --chown=node:node --from=build /app/package.json /app/package-lock.json ./
+COPY --chown=node:node --from=build /app/node_modules ./node_modules
+COPY --chown=node:node --from=build /app/dist ./dist
+COPY --chown=node:node --from=build /app/views ./views
+COPY --chown=node:node --from=build /app/public ./public
+RUN npm prune --production
+USER node
 EXPOSE 3000
-CMD [ "npm", "run", "start" ]
+HEALTHCHECK --interval=15s --timeout=3s --start-period=15s CMD curl -f http://localhost:3000/api/health
+CMD ["node",  "dist/src/main"]

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ClassSerializerInterceptor,
   HttpException,
   HttpStatus,
   Injectable,
@@ -13,6 +14,7 @@ import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util'
 import { PrismaService } from '../prisma/prisma.service'
 import { CreateUserDto } from './dto'
 import * as argon from 'argon2'
+import { UserViewDto } from './dto/user-view.dto'
 
 @Injectable()
 export class UsersService {
@@ -49,7 +51,7 @@ export class UsersService {
     cursor?: Prisma.UserWhereUniqueInput
     where?: Prisma.UserWhereInput
     orderBy?: Prisma.UserOrderByWithRelationInput
-  }): Promise<Pick<User, 'id' | 'name'>[]> {
+  }): Promise<UserViewDto[]> {
     const { skip, take = 10, cursor, where, orderBy } = params
 
     try {
@@ -59,12 +61,12 @@ export class UsersService {
         cursor,
         where,
         orderBy,
-        select: {
-          id: true,
-          name: true,
-          role: true,
-          email: true,
-        },
+        // select: {
+        //   id: true,
+        //   name: true,
+        //   roles: true,
+        //   email: true,
+        // },
       })
     } catch (err) {
       throw new HttpException(
@@ -76,7 +78,9 @@ export class UsersService {
     }
   }
 
-  async findOne(userWhereUniqueInput: Prisma.UserWhereUniqueInput) {
+  async findOne(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+  ): Promise<UserViewDto> {
     const user = await this.prisma.user.findUnique({
       where: userWhereUniqueInput,
     })

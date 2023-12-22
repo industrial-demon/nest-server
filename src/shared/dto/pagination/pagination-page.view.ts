@@ -13,10 +13,10 @@ class Meta {
   @ApiProperty()
   perPage: number
 
-  @ApiProperty({required: false, nullable: true})
+  @ApiProperty({ required: false, nullable: true })
   prev: number | null
 
-  @ApiProperty({required: false, nullable: true})
+  @ApiProperty({ required: false, nullable: true })
   next: number | null
 }
 

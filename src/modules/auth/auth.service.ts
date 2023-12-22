@@ -100,13 +100,15 @@ export class AuthService {
   async getTokens(user: User): Promise<Tokens> {
     delete user.password
     delete user.refreshHash
+    const tokens = this.configService.get('tokens')
+
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
         {
           user,
         },
         {
-          secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+          secret: tokens.accessTokenSecret,
           expiresIn: 60 * 5,
         },
       ),
@@ -117,7 +119,7 @@ export class AuthService {
           name: user.name,
         },
         {
-          secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
+          secret: tokens.refreshTokenSecret,
           expiresIn: '2 days',
         },
       ),

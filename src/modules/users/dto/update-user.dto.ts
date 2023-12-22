@@ -1,4 +1,4 @@
-import { User } from '@prisma/client'
+import { User, $Enums } from '@prisma/client'
 
 import {
   IsEnum,
@@ -9,7 +9,6 @@ import {
   MinLength,
 } from 'class-validator'
 
-import { STATUS } from '../enums'
 import { IsStringType } from '@app/shared/decorators/string-type-decorator'
 export class UpdateUserDto implements Partial<User> {
   @IsString()
@@ -26,15 +25,15 @@ export class UpdateUserDto implements Partial<User> {
   @IsString()
   @IsOptional()
   @IsNotEmpty()
-  @IsEnum(STATUS)
+  @IsEnum($Enums.UserStatus)
   @IsUppercase()
-  status?: STATUS
+  status?: $Enums.UserStatus
 
   @IsString()
   @IsOptional()
   @IsNotEmpty()
   @IsUppercase()
-  role?: User['role']
+  roles?: $Enums.UserRole[]
 
   @MinLength(6)
   @IsString()

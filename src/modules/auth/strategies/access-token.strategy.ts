@@ -1,4 +1,5 @@
-import { UserEntity } from '@app/modules/users/entities/user.entity'
+
+import { UserViewDto } from '@app/modules/users/dto/user-view.dto'
 import { UsersService } from '@app/modules/users/users.service'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -6,7 +7,7 @@ import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 
 type JwtPayload = {
-  user: UserEntity
+  user: UserViewDto
 }
 
 @Injectable()
@@ -18,7 +19,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get('JWT_ACCESS_TOKEN_SECRET'),
+      secretOrKey: configService.get('tokens.accessTokenSecret'),
     })
   }
 

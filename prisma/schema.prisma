@@ -10,25 +10,32 @@ generator client {
   provider = "prisma-client-js"
 }
 
-enum Role {
+enum UserRole {
   SUPER_ADMIN
   ADMIN
   USER
   OPERATOR
 }
 
+enum UserStatus {
+  DISABLED
+  ENABLED
+}
+
 model User {
-  id          String    @id @default(uuid())
-  email       String    @unique
-  password    String    @unique
-  name        String
-  lastName    String    @map("last_name")
-  status      String?   @default("ACTIVATED")
-  createdAt   DateTime? @default(now())
-  role        Role?     @default(USER)
-  refreshHash String?
-  posts       Post[]
-  jobs        Job[]
+  id             String      @id @default(uuid())
+  email          String      @unique
+  password       String      @unique
+  name           String
+  lastName       String      @map("last_name")
+  status         UserStatus? @default(ENABLED)
+  createdAt      DateTime?   @default(now()) @map("created_at")
+  roles          UserRole[]  @default([USER])
+  profileImage   String?     @map("profile_image")
+  posts          Post[]
+  jobs           Job[]
+  jobDescription String?     @map("job_description")
+  refreshHash    String?     @map("refresh_hash")
 
   @@index([id])
   @@map("users")
@@ -55,35 +62,59 @@ model Category {
   @@map("category")
 }
 
+//-------Job section-----------------------------------------------------
+
+enum JobStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ScheduleInterval {
+  REPEAT
+  NOT_REPEAT
+}
+
+enum EtlexecStatus {
+  QUEUED
+  FAILED
+  SUCCESS
+  SUMMARY
+}
+
 model Job {
-  batchid         String    @id @default(uuid())
-  mappingTaskName String
-  jobTaskName     String?
-  user            User?     @relation(fields: [userId], references: [id])
-  userId          String?
+  batchid         String        @id @default(uuid())
+  mappingTaskName String        @map("mapping_task_name")
+  jobTaskName     String?       @map("job_task_name")
+  user            User?         @relation(fields: [userId], references: [id])
+  userId          String?       @map("user_id")
   username        String
-  startedTstamp   DateTime
-  updatedTstamp   DateTime
-  completedTstamp DateTime?
-  etlexecStatus   String
-  deleteFlag      Boolean   @default(false)
+  // startedTstamp   DateTime
+  // updatedTstamp   DateTime
+  // completedTstamp DateTime?
+  // isn't represented in database
+  startedAt       DateTime      @default(now()) @map("started_at")
+  updatedAt       DateTime?     @updatedAt @map("updated_at")
+  completedAt     DateTime?     @map("completed_at")
+  etlexecStatus   EtlexecStatus @map("etlexec_status")
+  status          JobStatus
+  deleteFlag      Boolean       @default(false)
   schedule        Schedule?
 
   @@map("jobs")
 }
 
 model Schedule {
-  scheduleId          Int       @id @default(autoincrement())
+  scheduleId          Int               @id @default(autoincrement())
   scheduleName        String
   description         String?
   startDate           DateTime?
   timezone            String?
-  interval            String?
+  interval            ScheduleInterval?
   frequency           Int?
-  repeat              Boolean?  @default(false)
-  hourlyFrequencyKill Boolean?  @default(false)
-  job                 Job       @relation(fields: [jobBatchId], references: [batchid])
-  jobBatchId          String    @unique
+  repeat              Boolean?          @default(false)
+  hourlyFrequencyKill Boolean?          @default(false)
+  job                 Job               @relation(fields: [jobBatchId], references: [batchid])
+  jobBatchId          String            @unique
 
   @@map("schedules")
 }
@@ -104,11 +135,13 @@ model Task {
   targetConnectionObject String?
   updatedTimestamp       DateTime
 
-  source      String
-  target      String
-  createStage String
-  schedule    DateTime
-  updated     DateTime
+  source      String?
+  target      String?
+  createStage String?
+  schedule    DateTime?
+  updated     DateTime?
+
+  @@map("tasks")
 }
 
 //-------Connection section-----------------------------------------------------
@@ -134,10 +167,12 @@ model ConnParams {
   roleARN                   String?
   s3RegionName              String?
   connection                Connection? @relation(fields: [agentId], references: [agentId])
+
+  @@map("conn-params")
 }
 
 model Connection {
-  id                   String     @id @default(uuid())
+  id                   String      @id @default(uuid())
   orgId                String?
   name                 String
   type                 String
@@ -158,6 +193,8 @@ model Connection {
   createdBy            String?
   updatedBy            String?
   connParams           ConnParams?
+
+  @@map("connectuins")
 }
 
 //-------Next learn  start ----------------------------------------------------------
@@ -182,9 +219,8 @@ model Invoice {
   status      InvoiceStatus
 }
 
-
 model Product {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   name      String
   price     Int
   quantity  Int

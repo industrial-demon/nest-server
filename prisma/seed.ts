@@ -1,17 +1,5 @@
-import { PrismaClient, User, Connection } from '@prisma/client'
+import { PrismaClient, User, $Enums, Connection, Job } from '@prisma/client'
 import { faker } from '@faker-js/faker'
-
-export enum STATUS {
-  ACTIVATED = 'ACTIVATED',
-  PENDING = 'PENDING',
-}
-
-export enum ROLE {
-  SUPER_ADMIN = 'SUPER_ADMIN',
-  ADMIN = 'ADMIN',
-  USER = 'USER',
-  OPERATOR = 'OPERATOR',
-}
 
 function createUser(): User {
   return {
@@ -21,9 +9,27 @@ function createUser(): User {
     name: faker.person.firstName(),
     lastName: faker.person.lastName(),
     createdAt: faker.defaultRefDate(),
-    status: faker.helpers.arrayElement(Object.values(STATUS)) as string,
-    role: faker.helpers.arrayElement(Object.values(ROLE)) as User['role'],
+    status: $Enums.UserStatus.ENABLED,
+    roles: [$Enums.UserRole.USER],
     refreshHash: null,
+    jobDescription: null,
+    profileImage: null
+  }
+}
+
+function createJob(): Job {
+  return {
+    mappingTaskName: 'Max _Test',
+    jobTaskName: 'Max_Test 1',
+    userId: '3497ab0e-f420-4c72-ab02-2f648e1f3a55',
+    batchid: faker.string.uuid(),
+    username: 'get User name from UI',
+    etlexecStatus: 'QUEUED',
+    status: 'ACTIVE',
+    deleteFlag: false,
+    startedAt: faker.date.past(),
+    updatedAt: faker.date.past(),
+    completedAt: null,
   }
 }
 
@@ -100,11 +106,14 @@ export const CONNECTIONS: Connection[] = faker.helpers.multiple(
 const prisma = new PrismaClient()
 
 async function main() {
-  for (const connection of CONNECTIONS) {
-    await prisma.connection.create({
-      data: connection,
-    })
-  }
+  await prisma.job.create({
+    data: createJob(),
+  })
+  // for (const connection of CONNECTIONS) {
+  //   await prisma.connection.create({
+  //     data: connection,
+  //   })
+  // }
 
   // const users = await createUsers()
   // for (const user of users) {

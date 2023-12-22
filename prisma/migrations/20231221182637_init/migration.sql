@@ -1,5 +1,17 @@
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER');
+CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'ADMIN', 'USER', 'OPERATOR');
+
+-- CreateEnum
+CREATE TYPE "UserStatus" AS ENUM ('DISABLED', 'ENABLED');
+
+-- CreateEnum
+CREATE TYPE "JobStatus" AS ENUM ('ACTIVE', 'ARCHIVED');
+
+-- CreateEnum
+CREATE TYPE "ScheduleInterval" AS ENUM ('REPEAT', 'NOT_REPEAT');
+
+-- CreateEnum
+CREATE TYPE "EtlexecStatus" AS ENUM ('QUEUED', 'FAILED', 'SUCCESS', 'SUMMARY');
 
 -- CreateEnum
 CREATE TYPE "InvoiceStatus" AS ENUM ('PENDING', 'PAID');
@@ -11,10 +23,12 @@ CREATE TABLE "users" (
     "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "last_name" TEXT NOT NULL,
-    "status" TEXT DEFAULT 'ACTIVATED',
-    "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
-    "role" "Role" DEFAULT 'USER',
-    "refreshHash" TEXT,
+    "status" "UserStatus" DEFAULT 'ENABLED',
+    "created_at" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "roles" "UserRole"[] DEFAULT ARRAY['USER']::"UserRole"[],
+    "profile_image" TEXT,
+    "job_description" TEXT,
+    "refresh_hash" TEXT,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -42,14 +56,15 @@ CREATE TABLE "category" (
 -- CreateTable
 CREATE TABLE "jobs" (
     "batchid" TEXT NOT NULL,
-    "mappingTaskName" TEXT NOT NULL,
-    "jobTaskName" TEXT,
-    "userId" TEXT,
+    "mapping_task_name" TEXT NOT NULL,
+    "job_task_name" TEXT,
+    "user_id" TEXT,
     "username" TEXT NOT NULL,
-    "startedTstamp" TIMESTAMP(3) NOT NULL,
-    "updatedTstamp" TIMESTAMP(3) NOT NULL,
-    "completedTstamp" TIMESTAMP(3),
-    "etlexecStatus" TEXT NOT NULL,
+    "started_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3),
+    "completed_at" TIMESTAMP(3),
+    "etlexec_status" "EtlexecStatus" NOT NULL,
+    "status" "JobStatus" NOT NULL,
     "deleteFlag" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "jobs_pkey" PRIMARY KEY ("batchid")
@@ -62,7 +77,7 @@ CREATE TABLE "schedules" (
     "description" TEXT,
     "startDate" TIMESTAMP(3),
     "timezone" TEXT,
-    "interval" TEXT,
+    "interval" "ScheduleInterval",
     "frequency" INTEGER,
     "repeat" BOOLEAN DEFAULT false,
     "hourlyFrequencyKill" BOOLEAN DEFAULT false,
@@ -72,7 +87,7 @@ CREATE TABLE "schedules" (
 );
 
 -- CreateTable
-CREATE TABLE "Task" (
+CREATE TABLE "tasks" (
     "id" SERIAL NOT NULL,
     "mappingTaskId" TEXT NOT NULL,
     "mappingName" TEXT NOT NULL,
@@ -84,17 +99,17 @@ CREATE TABLE "Task" (
     "targetConnectorType" TEXT,
     "targetConnectionObject" TEXT,
     "updatedTimestamp" TIMESTAMP(3) NOT NULL,
-    "source" TEXT NOT NULL,
-    "target" TEXT NOT NULL,
-    "createStage" TEXT NOT NULL,
-    "schedule" TIMESTAMP(3) NOT NULL,
-    "updated" TIMESTAMP(3) NOT NULL,
+    "source" TEXT,
+    "target" TEXT,
+    "createStage" TEXT,
+    "schedule" TIMESTAMP(3),
+    "updated" TIMESTAMP(3),
 
-    CONSTRAINT "Task_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "tasks_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "ConnParams" (
+CREATE TABLE "conn-params" (
     "id" TEXT NOT NULL,
     "agentId" TEXT NOT NULL,
     "agentGroupId" TEXT NOT NULL,
@@ -116,11 +131,11 @@ CREATE TABLE "ConnParams" (
     "roleARN" TEXT,
     "s3RegionName" TEXT,
 
-    CONSTRAINT "ConnParams_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "conn-params_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Connection" (
+CREATE TABLE "connectuins" (
     "id" TEXT NOT NULL,
     "orgId" TEXT,
     "name" TEXT NOT NULL,
@@ -142,7 +157,7 @@ CREATE TABLE "Connection" (
     "createdBy" TEXT,
     "updatedBy" TEXT,
 
-    CONSTRAINT "Connection_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "connectuins_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -167,6 +182,17 @@ CREATE TABLE "Invoice" (
 );
 
 -- CreateTable
+CREATE TABLE "Product" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "price" INTEGER NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "image_url" TEXT,
+
+    CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_CategoryToPost" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL
@@ -185,10 +211,10 @@ CREATE INDEX "users_id_idx" ON "users"("id");
 CREATE UNIQUE INDEX "schedules_jobBatchId_key" ON "schedules"("jobBatchId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ConnParams_agentId_key" ON "ConnParams"("agentId");
+CREATE UNIQUE INDEX "conn-params_agentId_key" ON "conn-params"("agentId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Connection_agentId_key" ON "Connection"("agentId");
+CREATE UNIQUE INDEX "connectuins_agentId_key" ON "connectuins"("agentId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_CategoryToPost_AB_unique" ON "_CategoryToPost"("A", "B");
@@ -200,13 +226,13 @@ CREATE INDEX "_CategoryToPost_B_index" ON "_CategoryToPost"("B");
 ALTER TABLE "posts" ADD CONSTRAINT "posts_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "jobs" ADD CONSTRAINT "jobs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "jobs" ADD CONSTRAINT "jobs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "schedules" ADD CONSTRAINT "schedules_jobBatchId_fkey" FOREIGN KEY ("jobBatchId") REFERENCES "jobs"("batchid") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ConnParams" ADD CONSTRAINT "ConnParams_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "Connection"("agentId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "conn-params" ADD CONSTRAINT "conn-params_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "connectuins"("agentId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_CategoryToPost" ADD CONSTRAINT "_CategoryToPost_A_fkey" FOREIGN KEY ("A") REFERENCES "category"("id") ON DELETE CASCADE ON UPDATE CASCADE;

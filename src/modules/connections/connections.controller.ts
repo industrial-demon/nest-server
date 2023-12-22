@@ -10,7 +10,6 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
   UsePipes,
 } from '@nestjs/common'
 import {
@@ -44,7 +43,10 @@ export class ConnectionsController {
   @PublicRoute()
   @Get()
   @ApiOperation({ summary: 'Get all connections' })
-  @ApiOkResponse({ status: HttpStatus.OK, type: PaginationDto })
+  @ApiOkResponse({
+    status: HttpStatus.OK,
+    type: PaginationDto,
+  })
   @ApiExtraModels(FilterViewDto)
   @ApiFilterQuery('filters', FilterViewDto)
   @ApiFilterQuery('sortedBy', SortingViewDto)
@@ -59,9 +61,7 @@ export class ConnectionsController {
   }
 
   @Put(':id')
-  async replaceOne(@Param('id') id: string) {
-    console.log('', id)
-  }
+  async replaceOne(@Param('id') id: string) {}
 
   @PublicRoute()
   @Patch(':id')

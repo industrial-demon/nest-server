@@ -1,17 +1,20 @@
 import {
+  IsArray,
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUppercase,
   MinLength,
+  ValidationOptions,
 } from 'class-validator'
-import { User } from '@prisma/client'
+import { User, $Enums } from '@prisma/client'
 import { ApiProperty, ApiHideProperty } from '@nestjs/swagger'
-import { ROLE, STATUS } from '../enums'
-import { IsAbstractEnum } from '../../../shared/decorators'
+import { IsAbstractEnum } from '@app/shared/decorators'
+
 export class CreateUserDto implements Partial<User> {
-  @ApiProperty()
+  // @ApiProperty()
   @IsNotEmpty()
   @IsString()
   readonly name: string
@@ -34,18 +37,23 @@ export class CreateUserDto implements Partial<User> {
   password: string
 
   @ApiProperty({
-    enum: STATUS,
+    enum: $Enums.UserStatus,
   })
   @ApiHideProperty()
   @IsOptional()
   @IsString()
   @IsUppercase()
-  @IsAbstractEnum(STATUS)
-  readonly status: STATUS = STATUS.ACTIVATED
+  @IsAbstractEnum($Enums.UserStatus)
+  readonly status: $Enums.UserStatus
 
-  @ApiHideProperty()
-  @IsString()
-  @IsUppercase()
-  @IsAbstractEnum(ROLE)
-  readonly role: ROLE = ROLE.ADMIN
+  @ApiProperty({
+    enum: $Enums.UserStatus,
+  })
+
+  // @ApiHideProperty()
+  @IsArray()
+  @IsEnum($Enums.UserRole, { each: true })
+  // @IsUppercase()
+  // @IsAbstractEnum($Enums.UserRole, {each: true})
+  readonly roles: $Enums.UserRole[]
 }

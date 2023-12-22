@@ -1,5 +1,5 @@
-import { applyDecorators } from '@nestjs/common';
-import { ApiExtraModels, ApiQuery, getSchemaPath } from '@nestjs/swagger';
+import { applyDecorators } from '@nestjs/common'
+import { ApiExtraModels, ApiQuery, getSchemaPath } from '@nestjs/swagger'
 
 /**
  * Combines Swagger Decorators to create a description for `filters[name]=something`
@@ -20,5 +20,5 @@ export function ApiFilterQuery(fieldName: string, filterDto: Function) {
         $ref: getSchemaPath(filterDto),
       },
     }),
-  );
+  )
 }

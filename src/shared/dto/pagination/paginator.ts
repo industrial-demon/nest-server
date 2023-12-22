@@ -1,4 +1,3 @@
-import { HttpException, HttpStatus } from '@nestjs/common'
 import { PaginationPageView } from './pagination-page.view'
 
 export type PaginateOptions = {
@@ -28,7 +27,6 @@ export const paginator = (
       }),
     ])
     const lastPage = Math.ceil(total / perPage)
-
 
     return {
       result,

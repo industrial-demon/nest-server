@@ -7,28 +7,33 @@ import { CorsInterceptor } from './cors.interceptor'
 import { HttpExceptionFilter } from './http-exception.filter'
 import { LoggerMiddleware } from './logger.middleware'
 
-import { PrismaModule } from '../modules/prisma/prisma.module'
-import { ConnectionsModule } from '../modules/connections/connections.module'
+import { PrismaModule } from '@app/modules/prisma/prisma.module'
+import { ConnectionsModule } from '@app/modules/connections/connections.module'
 import { AuthModule } from '@app/modules/auth/auth.module'
 import { UsersModule } from '@app/modules/users/users.module'
 import { JwtTokensGuard } from '@app/shared/guards'
-import { ServeStaticModule } from '@nestjs/serve-static'
-import { join } from 'path'
+import { MonitorModule } from '@app/modules/monitor/monitor.module'
+import { config } from '@app/config/config'
+import { MulterModule } from '@nestjs/platform-express'
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env.local',
+      load: [config],
+      envFilePath: `.env${
+        process.env.NODE_ENV?.trim() === 'DEVELOPMENT'
+          ? '.development'
+          : '.production'
+      }`,
     }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '../../..', 'client'),
-      exclude: ['/api/(.*)'],
+    MulterModule.register({
+      dest: './uploads',
     }),
     UsersModule,
     PrismaModule,
     ConnectionsModule,
     AuthModule,
-    // PostsModule,
+    MonitorModule,
   ],
   providers: [
     {
@@ -43,10 +48,6 @@ import { join } from 'path'
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
-    // {
-    //   provide: APP_PIPE,
-    //   useClass: ValidationPipe,
-    // },
   ],
   controllers: [AppController],
 })
