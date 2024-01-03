@@ -135,7 +135,7 @@ CREATE TABLE "conn-params" (
 );
 
 -- CreateTable
-CREATE TABLE "connectuins" (
+CREATE TABLE "connections" (
     "id" TEXT NOT NULL,
     "orgId" TEXT,
     "name" TEXT NOT NULL,
@@ -157,7 +157,7 @@ CREATE TABLE "connectuins" (
     "createdBy" TEXT,
     "updatedBy" TEXT,
 
-    CONSTRAINT "connectuins_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "connections_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -214,7 +214,7 @@ CREATE UNIQUE INDEX "schedules_jobBatchId_key" ON "schedules"("jobBatchId");
 CREATE UNIQUE INDEX "conn-params_agentId_key" ON "conn-params"("agentId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "connectuins_agentId_key" ON "connectuins"("agentId");
+CREATE UNIQUE INDEX "connections_agentId_key" ON "connections"("agentId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_CategoryToPost_AB_unique" ON "_CategoryToPost"("A", "B");
@@ -232,7 +232,7 @@ ALTER TABLE "jobs" ADD CONSTRAINT "jobs_user_id_fkey" FOREIGN KEY ("user_id") RE
 ALTER TABLE "schedules" ADD CONSTRAINT "schedules_jobBatchId_fkey" FOREIGN KEY ("jobBatchId") REFERENCES "jobs"("batchid") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "conn-params" ADD CONSTRAINT "conn-params_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "connectuins"("agentId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "conn-params" ADD CONSTRAINT "conn-params_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "connections"("agentId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_CategoryToPost" ADD CONSTRAINT "_CategoryToPost_A_fkey" FOREIGN KEY ("A") REFERENCES "category"("id") ON DELETE CASCADE ON UPDATE CASCADE;

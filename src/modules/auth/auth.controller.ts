@@ -25,6 +25,7 @@ export class AuthController {
   @Post('local/signup')
   @HttpCode(HttpStatus.CREATED)
   signupLocal(@Body() dto: CreateUserDto) {
+    console.log(dto, 'DTO')
     return this.authService.signupLocal(dto)
   }
 

@@ -21,6 +21,7 @@ COPY --chown=node:node --from=build /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/dist ./dist
 COPY --chown=node:node --from=build /app/views ./views
 COPY --chown=node:node --from=build /app/public ./public
+COPY --chown=node:node --from=build /app/uploads ./uploads
 RUN npm prune --production
 USER node
 EXPOSE 3000

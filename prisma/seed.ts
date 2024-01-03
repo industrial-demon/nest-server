@@ -13,7 +13,7 @@ function createUser(): User {
     roles: [$Enums.UserRole.USER],
     refreshHash: null,
     jobDescription: null,
-    profileImage: null
+    profileImage: null,
   }
 }
 
@@ -27,8 +27,8 @@ function createJob(): Job {
     etlexecStatus: 'QUEUED',
     status: 'ACTIVE',
     deleteFlag: false,
-    startedAt: faker.date.past(),
-    updatedAt: faker.date.past(),
+    startedAt: faker.date.past({ years: 2022 }),
+    updatedAt: faker.date.past({ years: 2023 }),
     completedAt: null,
   }
 }
@@ -102,18 +102,24 @@ export const CONNECTIONS: Connection[] = faker.helpers.multiple(
     count: 50,
   },
 )
+export const JOBS: Job[] = faker.helpers.multiple(createJob, {
+  count: 50,
+})
 
 const prisma = new PrismaClient()
 
 async function main() {
-  await prisma.job.create({
-    data: createJob(),
-  })
-  // for (const connection of CONNECTIONS) {
-  //   await prisma.connection.create({
-  //     data: connection,
+  // for (const job of JOBS) {
+  //   await prisma.job.create({
+  //     data: job,
   //   })
   // }
+
+  for (const connection of CONNECTIONS) {
+    await prisma.connection.create({
+      data: connection,
+    })
+  }
 
   // const users = await createUsers()
   // for (const user of users) {
