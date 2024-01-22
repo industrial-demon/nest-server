@@ -69,11 +69,12 @@ function createConnection(): Connection {
       exclude: ['A', 'B', 'C', 'X', 'V', 'Z'],
     }),
 
-    runtimeEnvironmentId: faker.string.alphanumeric({
-      length: 20,
-      casing: 'upper',
-      exclude: ['G', 'B', 'F', 'D', 'V', 'Z'],
-    }),
+    /* faker.string.alphanumeric({
+       length: 20,
+       casing: 'upper',
+       exclude: ['G', 'B', 'F', 'D', 'V', 'Z'],
+    })*/
+    runtimeEnvironmentId: 'fbfb5bd2-247e-4da8-a0e1-3118b2a5b2d8',
 
     password: '********',
     description: faker.lorem.sentence({ min: 3, max: 5 }),

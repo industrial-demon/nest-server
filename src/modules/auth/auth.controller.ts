@@ -13,7 +13,7 @@ import { CreateUserDto } from '../users/dto'
 import { SignupDto } from './dto'
 
 import { Tokens } from './entities/tokens'
-import {  JwtRefreshGuard } from '@app/shared/guards'
+import { JwtRefreshGuard } from '@app/shared/guards'
 import { GetUserField, PublicRoute } from '@app/shared/decorators'
 @Controller('auth')
 @ApiTags('auth')

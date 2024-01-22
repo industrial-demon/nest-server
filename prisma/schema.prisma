@@ -23,19 +23,20 @@ enum UserStatus {
 }
 
 model User {
-  id             String      @id @default(uuid())
-  email          String      @unique
-  password       String      @unique
+  id             String       @id @default(uuid())
+  email          String       @unique
+  password       String       @unique
   name           String
-  lastName       String      @map("last_name")
-  status         UserStatus? @default(ENABLED)
-  createdAt      DateTime?   @default(now()) @map("created_at")
-  roles          UserRole[]  @default([USER])
-  profileImage   String?     @map("profile_image")
+  lastName       String       @map("last_name")
+  status         UserStatus?  @default(ENABLED)
+  createdAt      DateTime?    @default(now()) @map("created_at")
+  roles          UserRole[]   @default([USER])
+  profileImage   String?      @map("profile_image")
   posts          Post[]
   jobs           Job[]
-  jobDescription String?     @map("job_description")
-  refreshHash    String?     @map("refresh_hash")
+  connections    Connection[]
+  jobDescription String?      @map("job_description")
+  refreshHash    String?      @map("refresh_hash")
 
   @@index([id])
   @@map("users")
@@ -179,6 +180,7 @@ model Connection {
   description          String?
   agentId              String?     @unique()
   runtimeEnvironmentId String?
+  user                 User?       @relation(fields: [runtimeEnvironmentId], references: [id])
   instanceDisplayName  String?
   host                 String?
   database             String?

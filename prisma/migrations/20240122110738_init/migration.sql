@@ -235,6 +235,9 @@ ALTER TABLE "schedules" ADD CONSTRAINT "schedules_jobBatchId_fkey" FOREIGN KEY (
 ALTER TABLE "conn-params" ADD CONSTRAINT "conn-params_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "connections"("agentId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "connections" ADD CONSTRAINT "connections_runtimeEnvironmentId_fkey" FOREIGN KEY ("runtimeEnvironmentId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "_CategoryToPost" ADD CONSTRAINT "_CategoryToPost_A_fkey" FOREIGN KEY ("A") REFERENCES "category"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
